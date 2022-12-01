@@ -65,6 +65,10 @@ impl Symbol {
         self.bid_price= res["b"].to_string().replace('\"', "");
         self.bid_qty= res["B"].to_string().replace('\"', "");
     }
+
+    pub fn execute(&mut self, side: Side, qty: &str, server_time_stamp: &str) -> Result<String, &str> {
+        Ok("Bruh".to_string())
+    }
 }
 
 #[cfg(test)]

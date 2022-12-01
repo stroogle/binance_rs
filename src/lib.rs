@@ -11,6 +11,8 @@ use url::Url;
 use tungstenite::{connect};
 use std::time;
 use symbol::Symbol;
+use reqwest;
+use std::collections::HashMap;
 
 const BINANCE_WS_URL: &str = "wss://stream.binance.com:443/ws";
 
@@ -96,6 +98,13 @@ impl Binance {
         println!("Connection being reset.");
         self.new_connection();
     }
+
+    pub fn get_server_time_stamp() -> Result<u64, Box<dyn std::error::Error>> {
+        let resp = reqwest::blocking::get("https://api.binance.com/api/v3/time")?
+        .json::<HashMap<String, u64>>()?;
+        println!("{:#?}", resp);
+        Ok(resp["serverTime"])
+    }
 }
 
 #[cfg(test)]
@@ -111,5 +120,16 @@ mod tests {
             println!("{}", &s);
         }
         b1.handle_incoming(print_msg);
+    }
+
+    #[test]
+    fn test_get_server_time_stamp() {
+        let start = time::Instant::now();
+        println!("{}", Binance::get_server_time_stamp().expect("Couldnt get timestamp"));
+        println!("request took: {} millseconds", start.elapsed().as_millis());
+        println!("{}", Binance::get_server_time_stamp().expect("Couldnt get timestamp"));
+        println!("{}", Binance::get_server_time_stamp().expect("Couldnt get timestamp"));
+        println!("{}", Binance::get_server_time_stamp().expect("Couldnt get timestamp"));
+    
     }
 }

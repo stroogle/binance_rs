@@ -2,7 +2,8 @@
 
 use serde_json::{Value};
 use rust_decimal::prelude::*;
-use std::cmp::Ordering;
+// use tungstenite::handshake::server;
+use std::{cmp::Ordering};
 
 pub enum Side {
     Base,
@@ -66,13 +67,44 @@ impl Symbol {
         self.bid_qty= res["B"].to_string().replace('\"', "");
     }
 
-    pub fn execute(&mut self, side: Side, qty: &str, server_time_stamp: &str) -> Result<String, &str> {
-        Ok("Bruh".to_string())
+    pub fn build_trade_json(&self, owned_asset: Side, owned_amount: &str, server_time_stamp: u64, _api_secret: &str) -> String {
+        let qty: String;
+        let side: &str;
+        let base = self.base.clone();
+        let quote = self.quote.clone();
+
+        match owned_asset {
+            Side::Base => {
+                side = "SELL";
+                qty = format!(r#""quantity": "{owned_amount}""#);
+            },
+            Side::Quote => {
+                side = "BUY";
+                qty = format!(r#""quoteOrderQty": "{owned_amount}""#);
+            }
+        }
+
+        let result: String = format!(
+            r#"{{
+                "symbol": "{base}{quote}",
+                "side": "{side}",
+                "type": "MARKET",
+                {qty},
+                "timestamp": {server_time_stamp}
+            }}"#
+        );
+
+        // Modify result with signature 
+
+        result
     }
+
 }
 
 #[cfg(test)]
 mod test {
+
+    use crate::Binance;
 
     use super::*;
 
@@ -136,4 +168,18 @@ mod test {
         assert_eq!(s1.asking_qty, "3.89930000");
     }
 
+    #[test]
+    fn test_build_trade_json() {
+        let json_string = r#"{"u":22277893334,"s":"ETHUSDT","b":"1268.53000000","B":"107.76630000","a":"1268.54000000","A":"3.89930000"}"#;
+        let mut s1 = Symbol::new("ETH", "USDT");
+        s1.update(json_string);
+        
+        println!("BRUH MOMENT {}", s1.build_trade_json(Side::Base, "100", Binance::get_server_time_stamp().unwrap(), ""));
+
+        let json_string = r#"{"u":22277893334,"s":"ETHUSDT","b":"1268.53000000","B":"107.76630000","a":"1268.54000000","A":"3.89930000"}"#;
+        let mut s1 = Symbol::new("ETH", "USDT");
+        s1.update(json_string);
+        
+        println!("BRUH MOMENT {}", s1.build_trade_json(Side::Quote, "100", Binance::get_server_time_stamp().unwrap(), ""));
+    }
 }

@@ -121,7 +121,7 @@ impl Binance {
         let body: String = symbol.build_trade_json(owned_asset, &owned_amount, server_time_stamp, &self.api_secret);
         let client = reqwest::blocking::Client::new();
         let res = client.post("https://api.binance.com/api/v3/order/test")
-        .body(body)
+        .json(&body)
         .header("X-MBX-APIKEY", self.api_key.clone())
         .send();
         res

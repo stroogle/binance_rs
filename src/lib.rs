@@ -1,21 +1,21 @@
 //! A Rust library build to interact with the Binance API
 
 // Modules
-mod symbol;
+pub mod symbol;
 
 // Uses
+use std::net::TcpStream;
+use std::time;
+use std::collections::HashMap;
+use std::error::Error;
 use tungstenite::{WebSocket, Message};
 use tungstenite::stream::MaybeTlsStream;
-use std::net::TcpStream;
-use url::Url;
 use tungstenite::{connect};
-use std::time;
-use symbol::Symbol;
 use reqwest;
-use std::collections::HashMap;
-use symbol::Side;
 use reqwest::blocking::Response;
-use std::error::Error;
+use url::Url;
+use symbol::Symbol;
+use symbol::Side;
 
 const BINANCE_WS_URL: &str = "wss://stream.binance.com:443/ws";
 
@@ -118,10 +118,13 @@ impl Binance {
 
     pub fn execute(&mut self, symbol: Symbol, owned_asset: Side, owned_amount: &str, server_time_stamp: u64) -> Result<Response, impl Error> {
         
-        let body: String = symbol.build_trade_json(owned_asset, &owned_amount, server_time_stamp, &self.api_secret);
+        let query: String = symbol.build_trade_json(owned_asset, &owned_amount, server_time_stamp, &self.api_secret);
+        let url = format!(
+            "https://api.binance.com/api/v3/order/test?{query}"
+        );
         let client = reqwest::blocking::Client::new();
-        let res = client.post("https://api.binance.com/api/v3/order/test")
-        .json(&body)
+        let res = client.post(url)
+        // .json(&body)
         .header("X-MBX-APIKEY", self.api_key.clone())
         .send();
         res
@@ -173,7 +176,7 @@ mod tests {
 
         let res = b1.execute(
             s1,
-            Side::Base, 
+            Side::Quote, 
             "100", 
             Binance::get_server_time_stamp().unwrap()
         );
@@ -181,7 +184,7 @@ mod tests {
         if res.is_err() {
             println!("BRUH MOMENT {}", res.unwrap_err());
         } else {
-            println!("BRUH MOMENT {:#?}", res.unwrap());
+            println!("BRUH MOMENT {:#?}", res.unwrap().json::<serde_json::Value>().unwrap().to_string());
         }
 
     }

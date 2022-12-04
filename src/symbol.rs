@@ -14,11 +14,17 @@ pub enum Side {
 
 /// Represets a trading symbol on the binance spot trading market.
 pub struct Symbol {
+    /// The base asset of the symbol
     pub base: String,
+    /// The quote asset of the symbol
     pub quote: String,
+    /// The current asking price of the symbol
     pub asking_price: String,
+    /// The current amount of the base asset available for sale
     pub asking_qty: String,
+    /// The highest bid price available for the base asset in the quote asset
     pub bid_price: String,
+    /// The most of the base asset purchasable buy the bidder
     pub bid_qty: String
 }
 

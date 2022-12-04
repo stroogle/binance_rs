@@ -43,21 +43,21 @@ impl Symbol {
     }
 
     pub fn calculate_trade(&self, owned_asset: Side, amount: &str) -> Result<String, &str> {
-        let owned_amount = Decimal::from_str(amount).unwrap();
+        let owned_amount: Decimal = Decimal::from_str(amount).unwrap();
         let res: Decimal;
         match owned_asset {
             Side::Base => {
-                let bid_price = Decimal::from_str(&self.bid_price).unwrap();
+                let bid_price: Decimal = Decimal::from_str(&self.bid_price).unwrap();
                 res = owned_amount * bid_price;
-                let bid_qty = Decimal::from_str(&self.bid_qty).unwrap();
-                let total_value = bid_price * bid_qty;
+                let bid_qty: Decimal = Decimal::from_str(&self.bid_qty).unwrap();
+                let total_value: Decimal = bid_price * bid_qty;
                 if res.cmp(&total_value) == Ordering::Greater {
                     return Err("Base_side Not enough qty to trade");
                 }
             },
             Side::Quote => {
                 res = owned_amount / Decimal::from_str(&self.asking_price).unwrap();
-                let ask_qty = Decimal::from_str(&self.asking_qty).unwrap();
+                let ask_qty: Decimal = Decimal::from_str(&self.asking_qty).unwrap();
                 if res.cmp(&ask_qty) == Ordering::Greater {
                     return Err("Not enough qty to trade");
                 }
